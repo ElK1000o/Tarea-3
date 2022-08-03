@@ -1,0 +1,130 @@
+---
+title: "Tarea 03"
+date: '2022-06-05'
+output:
+  html_document: default
+  pdf_document: default
+toc: yes
+always_allow_html: yes
+theme: journal
+---
+```{r paquetes, include=FALSE}
+pacman::p_load(haven, 
+               tidyverse, 
+               sjmisc, 
+               sjPlot,
+               srvyr,
+               survey)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+![](https://www.uahurtado.cl/wp-images/uploads/2015/05/uah2.png) 
+
+#### Universidad Alberto Hurtado
+#### Carrera: Sociología
+#### Profesora: Valentina Andrade de la Horra
+#### Ayudantes: Nicolás Godoy Marquéz  y Dafne Jaime Vargas
+#### Estudiantes: Josefa Espinoza - Camilo Riquelme - Isidora Toledo
+
+
+```{r datos}
+data_proc = readRDS("output/data/data_proc.rds")
+```
+
+```{r creacion objeto encuesta1, include=FALSE}
+data_proc = data_proc%>%
+  group_by(estrato)%>%
+  mutate(stratn = sum(fact_exp01))%>%
+  ungroup()
+```
+
+```{r creacion objeto encuesta2, include=FALSE}
+obj_enc = data_proc%>%
+  as_survey_design(ids = 1,
+                    strata = estrato,
+                    fpc = stratn,
+                    weights = ponderador01)
+```
+
+##Presentacion de la base
+Con motivo de esta tarea trabajaremos con los datos de la encuesta longitudinal social del centro de estudios de conflicto y cohesión social (COES) del año 2019, la cual posee 3417 observaciones y 374 variables, de las cuales trabajaremos solo con 9, estas son:
+a) c20 -> 44 ¿Cuál es el movimiento social que ud. más valora?
+b) c22 -> 45 Frecuencia de participacion en movimientos sociales
+c) c41_01 -> 53 Grado de rabia: Actuales niveles de desigualdad en Chile
+d) c41_02 -> Grado de rabia: El costo de la vida en Chile
+e) c16 -> 58 ¿Cuál de los siguientes partidos políticos representa mejor sus intereses, creencias y valores?
+f) c18_04 -> 74 Grado de acuerdo: Mas que derechos necesitamos un gobierno firme
+g) c18_05 -> 74 Grado de acuerdo: Pais necesita un mandatario fuerte
+h) c18_06 -> 74 Grado de acuerdo: Obediencia y respeto importantes que aprendan los ninnios
+i) c18_07 -> 4 Grado de acuerdo: Obediencia y disciplina son claves para buena vida
+
+# Tablas y Graficos
+
+##¿Cuál es el movimiento social que ud. más valora?
+
+```{r graficos 1, echo=FALSE}
+plot_frq(obj_enc$variables$c20,
+         title = "¿Cuál es el movimiento social que ud. más valora?",
+         type = "bar",
+         geom.colors = "black",
+         sort.frq = "des",
+         coord.flip = T)
+```
+
+Para desarrollar el analisis de este gráfico tomaremos en consideracion dos respuestas, la primera será la cateforia de "ninguna" la cual representa a un 23,4% de la muestra, en el reporte original esta variable posee un 18% aproximadamente de representatividad. Si bien nos acercamos al resultado, creemos que hay un error en el procesamiento que no podemos identificar. La segunda respuesta a descrbir es la opcion de "pensiones" la cual representa a un 23,2% de la muestra, en este caso si nos acercamos al valor de los resultados originales.
+ 
+##¿Cuál de los siguientes partidos políticos representa mejor sus intereses, creencias y valores?
+
+```{r graficos 2, echo=FALSE}
+plot_frq(obj_enc$variables$c16,
+         title = "¿Cuál de los siguientes partidos políticos representa mejor sus intereses, creencias y valores?",
+         type = "bar", 
+         geom.colors = "red",
+         sort.frq = "des")
+
+```
+
+Para la elaboración de nuestro gráfico, utilizamos los datos correspondientes al año 2019, año en el que la barra "ninguno" concentraba el 67.5% de los casos de la muestra, la barra "otro" el 1,2%, la barra "R+ UDI+ EVO" un 9,7%, la barra "PPD+ PDC+ PS+ PR" un 13,2%. La barra "PRO+ RD" un 3,0% y,la barra "PD+ PH" un 5,5%.
+
+En este sentido, en contraste con el gráfico elaborado, los datos son diferentes pero no en muy altos porcentajes. La barra "ninguna" tiene una diferencia de un -4.2%. La barra "otro", una diferencia de un -0.4%. La barra "RN+ UDI+ RN" tiene una diferencia de un 1.9%. La barra PPD+ PDC+ PS+ PR, una diferencia de un 0.8%. Finalemnte, la barra PD+ PH, presenta una diferencia entre el gráfico del pptx. con el elaborado por nostros de un 0.4%. 
+
+##Frecuencia de participacion en movimientos sociales
+
+```{r graficos 3, echo=FALSE}
+plot_frq(obj_enc$variables$c22_45,
+         title = "Frecuencia de participacion en movimientos sociales",
+         type = "bar", 
+         geom.colors = "cyan",
+         sort.frq = "des")
+```
+
+El grafico original para el año 2019 presentaba un 36,3% de frecuencia de participacion en movimientos sociales, recopilando las categorias de "A veces", "Frecunetemente" y "Muy Frecuentemente". Nuestro grafico nos da un resultado de 33, 8% de participación, nuevamente no podemos identificar el problema en la diferencia de datos. 
+
+###Frecuencia de participación en movimiento social, según rabia hacia nivel de desigualdad
+
+```{r graficos bivariados 1, echo=FALSE, warning=FALSE}
+plot_xtab(obj_enc$variables$c41_01, obj_enc$variables$c22_53, margin = "row", 
+          bar.pos = "stack",
+          title = "Frecuencia de participación en movimiento social, según rabia hacia nivel de desigualdad",
+          show.summary = TRUE, coord.flip = TRUE, show.n = FALSE)
+```
+
+En este caso tenemmos una diferencia aprocimada de 10pts del marco referencial original de la encuesta. 
+
+##Frecuencia de participación en movimiento social, según rabia hacia costo de vida
+
+```{r graficos bivariados 2, echo=FALSE, warning=FALSE}
+plot_xtab(obj_enc$variables$c41_02, obj_enc$variables$c22_53, margin = "row", 
+          bar.pos = "stack",
+          title = "Frecuencia de participación en movimiento social, según rabia hacia costo de vida",
+          show.summary = TRUE, coord.flip = TRUE, show.n = FALSE)
+```
+
+La frecuencia de participacion en los movimientos sociales, según el costo de vida, para las tres categorias "Bastante o mucha", "Nada", "Poca o Algo", tienen altos porcentajes, muy parecidos al reporte original pero fue mencionado a lo largo del repote, desconocemos el por qué la diferencia de los resultados.
+
+##Observación general
+
+No conseguimos replicar los datos de manera correcta en los gráficos, suponemos que se debe a un error de procesamiento que no encontramos, o que quizás nuestros datos estaban incorrectos, ya que revisando variable por variable antes de procesar tampoco calzaban los porcentajes.
